@@ -71,6 +71,7 @@ def main():
     shutil.copy2(ROOT/'dist/AllyLight.exe',package/'AllyLight.exe')
     shutil.copy2(smoke,package/'build-smoke-result.json')
     shutil.copy2(smoke.with_suffix('.png'),package/'build-smoke-window.png')
+    shutil.copytree(smoke.parent/'screens',package/'build-ui-screens',dirs_exist_ok=True)
     for name in ('LICENSE','THIRD_PARTY_NOTICES.md'):
         shutil.copy2(ROOT/name,package/name)
     shutil.copytree(ROOT/'packaging/notices',package/'LICENSES',dirs_exist_ok=True)
