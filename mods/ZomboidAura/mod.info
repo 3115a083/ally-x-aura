@@ -1,0 +1,3 @@
+name=Zomboid Aura (Alpha)
+id=ZomboidAura
+description=Client telemetry and in-game device routing for the companion Windows Aura bridge. Hardware compatibility unverified. F10 or world context menu opens settings.
