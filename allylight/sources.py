@@ -2,9 +2,10 @@ from __future__ import annotations
 import colorsys
 import json
 import math
+import re
 from pathlib import Path
 import time
-from .rendering import validate_frame
+from .rendering import validate_frame, finite
 
 
 def matches(executable,patterns):
@@ -21,7 +22,54 @@ def choose_profile(cfg,foreground):
     return next((p for p in cfg['profiles'] if p['enabled'] and matches(foreground['exe'],p['executables'])),None)
 
 
-def read_zomboid(directory,now=None):
+def read_pz_pulse(directory, now=None):
+    """Read PZ Pulse's JSON assignment as data, never execute JavaScript.
+
+    data.txt changes only with player values. Freshness belongs to heartbeat.txt.
+    """
+    now = time.time() if now is None else now
+    root = Path(directory)
+    if root.name.casefold() != 'pz_pulse':
+        root = root / 'PZ_Pulse'
+    data, heartbeat = root/'data.txt', root/'heartbeat.txt'
+    try:
+        beat = heartbeat.stat()
+        if beat.st_size > 65536 or not -1 <= now-beat.st_mtime <= 3:
+            return None
+        before = data.stat()
+        if before.st_size > 2_000_000 or before.st_size == 0:
+            return None
+        text = data.read_text(encoding='utf-8-sig')
+        prefix = re.match(r'\s*window\.PZ_DATA\s*=\s*', text)
+        if not prefix:
+            return None
+        payload, end = json.JSONDecoder().raw_decode(text, prefix.end())
+        tail = re.fullmatch(r'\s*;\s*window\.PZ_DATA\.seq\s*=\s*(\d+)\s*;?\s*', text[end:])
+        if not tail:
+            return None
+        after = data.stat()
+        if (before.st_mtime_ns, before.st_size) != (after.st_mtime_ns, after.st_size):
+            return None
+        health = finite(payload['health']['overall'], 0, 100) / 100
+        stamina = [n for n in payload['needs'] if n.get('label') == 'Stamina']
+        if len(stamina) != 1 or stamina[0].get('badHigh') is not False:
+            return None
+        endurance = finite(stamina[0]['value'], 0, 100) / 100
+        # This export has one local player and no positional sound events.
+        return validate_frame({'protocol':1, 'session':'pz-pulse', 'seq':int(tail[1]),
+            'players':[{'id':0, 'health':health, 'endurance':endurance,
+                        'sounds':[], 'sound_available':False}], 'routes':[], 'source':'pz-pulse'})
+    except (OSError, ValueError, TypeError, KeyError, AttributeError, RecursionError):
+        return None
+
+
+def read_zomboid(directory,now=None,source='auto'):
+    root = Path(directory)
+    pulse = root if root.name.casefold() == 'pz_pulse' else root/'PZ_Pulse'
+    if source == 'pzpulse' or (source == 'auto' and pulse.is_dir()):
+        return read_pz_pulse(directory,now)
+    if source not in ('auto','addon'):
+        return None
     now=time.time() if now is None else now
     candidates=[]
     for slot in (0,1):

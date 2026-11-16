@@ -6,16 +6,15 @@ AllyLight läuft als eigenes Windows-Programm neben OpenRGB. Es erkennt das akti
 Spiel, lädt das passende Profil und überträgt Spielinformationen auf ausgewählte
 LEDs. Nach dem Spiel stellt es die vorherige statische Beleuchtung wieder her.
 
-> **Entwicklungsversion 0.2.0:** Die Windows-EXE enthält Python und die benötigten
+> **Entwicklungsversion 0.3.0:** Die Windows-EXE enthält Python und die benötigten
 > Bibliotheken. OpenRGB bleibt separat erforderlich. Die vollständige Abnahme der
 > neuen Anwendung auf dem Ally ist noch offen.
 
 ## Download und Start
 
-1. Unter [Actions → tests](https://github.com/3115a083/ally-x-aura/actions/workflows/tests.yml)
-   einen erfolgreichen Build des Branches `feat/allylight-desktop` öffnen.
-2. Das Artefakt **AllyLight-0.2.0-windows-x64** herunterladen und das ZIP vollständig entpacken.
-   Für GitHub-Artefakte ist gegebenenfalls eine Anmeldung nötig. Sie bleiben 30 Tage verfügbar.
+1. Unter [Releases](https://github.com/3115a083/ally-x-aura/releases) die gewuenschte Version oeffnen.
+2. Das Windows-Paket unter **Assets** herunterladen und vollstaendig entpacken.
+   Entwicklungsbuilds vor einer Veroeffentlichung stehen unter Actions als Artefakte bereit.
 3. In OpenRGB die gewünschte Ausgangsbeleuchtung als **Static** oder **Direct** einstellen.
    Unter **SDK Server** den Server auf Port **6742** starten und OpenRGB geöffnet lassen.
 4. **AllyLight.exe** starten. Eine separate Python-Installation oder ein `pip`-Befehl ist nicht nötig.
@@ -67,6 +66,24 @@ Ein optionaler Weltgeräusch-Fallback lässt sich im bisherigen F10-/Kontextmen�
 aktivieren. Er basiert auf KI-Geräuschereignissen und bildet das tatsächliche Hören
 nur ungefähr ab. B41-/B42-Verzeichnislayouts liegen bei; Live-Kompatibilität und
 Mehrspielerbetrieb müssen im konkreten Build geprüft werden.
+
+### PZ Pulse als Datenquelle
+
+In den Einstellungen `pzpulse` auswaehlen und den Ordner
+`%USERPROFILE%\Zomboid\Lua` oder dessen Unterordner `PZ_Pulse` einstellen.
+Das vorhandene Zomboid-Spielprofil weiterverwenden, Gesundheit oder Ausdauer
+zuordnen und Profil sowie Automatik aktivieren. Unsere eigene Mod ist dafuer
+nicht erforderlich. PZ Pulse muss in der Partie aktiv sein; der Browser muss
+nicht geoeffnet bleiben.
+
+`auto` bevorzugt einen vorhandenen PZ_Pulse-Ordner. `addon` erzwingt die bisherige
+Mod. Bei veralteten Pulse-Daten erfolgt kein Rueckfall auf die andere Quelle.
+AllyLight liest `data.txt` als JSON-Zuweisung, ohne JavaScript auszufuehren.
+Der Heartbeat muss innerhalb von drei Sekunden aktualisiert worden sein;
+`data.txt` selbst darf aelter sein, weil Pulse nur Aenderungen schreibt.
+Unterstuetzt: ein lokaler Spieler (Spieler 1), Gesundheit und Stamina in Prozent.
+Keine Geraeuschrichtungen in diesem Export. Reine Geraeuschzonen bleiben frei;
+Combined zeigt nur Gesundheit. Rohdaten werden weder gespeichert noch hochgeladen.
 
 ### Hue
 

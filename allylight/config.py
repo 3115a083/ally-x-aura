@@ -9,7 +9,7 @@ import uuid
 MODES=('health','endurance','sound','combined','screen','static')
 
 def default_config():
-    return {'version':1,'automation':False,'cache':str(Path.home()/'Zomboid'/'Lua'),
+    return {'version':1,'automation':False,'zomboid_source':'auto','cache':str(Path.home()/'Zomboid'/'Lua'),
             'openrgb_exe':'','start_openrgb':False,'zones':[],
             'profiles':[{'id':'zomboid','name':'Project Zomboid','source':'zomboid','enabled':False,
                          'executables':['ProjectZomboid64.exe','ProjectZomboid32.exe'], 'routes':[]},
@@ -25,6 +25,7 @@ def validate(cfg):
     for key in ('openrgb_exe',):
         if not isinstance(cfg.get(key),str):raise ValueError('Ungueltiger OpenRGB-Pfad')
     if type(cfg.get('start_openrgb')) is not bool:raise ValueError('Ungueltiger OpenRGB-Autostart')
+    if cfg.get('zomboid_source','auto') not in ('auto','pzpulse','addon'):raise ValueError('Unbekannte Zomboid-Datenquelle')
     zones=cfg.get('zones');profiles=cfg.get('profiles')
     if not isinstance(zones,list) or len(zones)>128:raise ValueError('Zu viele Zonen')
     zone_ids=set();used={}

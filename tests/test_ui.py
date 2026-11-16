@@ -32,4 +32,23 @@ class FormTests(unittest.TestCase):
         self.app.refresh_zones()
         self.assertEqual(self.app.exe_var.get(),'')
 
+    def test_fields_keep_contrast_in_all_states(self):
+        from tkinter import ttk
+        style=ttk.Style(self.root)
+        for kind in ('TEntry','TCombobox','TSpinbox'):
+            for state in ((),('readonly',),('disabled',),('focus',)):
+                fg=style.lookup(kind,'foreground',state);bg=style.lookup(kind,'fieldbackground',state)
+                self.assertNotEqual(fg,bg)
+                self.assertIn(fg,('#111827','#475569'))
+                self.assertIn(bg,('#f1f5f9','#cbd5e1'))
+
+    def test_touch_targets_and_scrollable_settings(self):
+        from tkinter import ttk
+        self.assertGreaterEqual(self.app.profile_combo.winfo_reqheight(),44)
+        self.assertGreaterEqual(self.app.toggle.winfo_reqheight(),44)
+        self.assertGreaterEqual(int(ttk.Style(self.root).lookup('Treeview','rowheight')),44)
+        page=self.app.pages['Einstellungen']
+        self.assertEqual(page.master.winfo_class(),'Canvas')
+        self.assertTrue(any(w.winfo_class()=='TScrollbar' for w in page.master.master.winfo_children()))
+
 if __name__=='__main__':unittest.main()

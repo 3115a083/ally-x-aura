@@ -32,7 +32,7 @@ jobs:
       - run: python tools/build_windows.py
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: AllyLight-0.2.0-windows-x64
+          name: AllyLight-0.3.0-windows-x64
           path: dist/package/
           if-no-files-found: error
           retention-days: 30
