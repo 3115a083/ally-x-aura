@@ -36,13 +36,14 @@ def set_autostart(enabled,script,data_dir):
     path=shortcut_path()
     if not enabled:path.unlink(missing_ok=True);return
     import win32com.client
-    pythonw=Path(sys.executable).with_name('pythonw.exe')
-    if not pythonw.exists():raise RuntimeError('pythonw.exe fehlt.')
+    from .runtime import launch_command
+    target,arguments,working=launch_command(script,data_dir)
+    if not target.exists():raise RuntimeError('Startprogramm fehlt: '+str(target))
     path.parent.mkdir(parents=True,exist_ok=True)
     shell=win32com.client.Dispatch('WScript.Shell');link=shell.CreateShortCut(str(path))
-    link.TargetPath=str(pythonw)
-    link.Arguments=subprocess.list2cmdline([str(Path(script).resolve()),'--tray','--data-dir',str(Path(data_dir).resolve())])
-    link.WorkingDirectory=str(Path(script).resolve().parent)
+    link.TargetPath=str(target)
+    link.Arguments=arguments
+    link.WorkingDirectory=str(working)
     link.Description='AllyLight Spielbeleuchtung';link.Save()
 
 

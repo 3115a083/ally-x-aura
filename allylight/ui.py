@@ -356,7 +356,8 @@ class App:
     def install_mod(self):
         try:
             target=Path(self.cache_var.get()).parent/'mods'/'ZomboidAura'
-            source=Path(__file__).resolve().parents[1]/'mods'/'ZomboidAura'
+            from .runtime import resource_root
+            source=resource_root()/'mods'/'ZomboidAura'
             shutil.copytree(source,target,dirs_exist_ok=True)
             self.log('Mod installiert. In Zomboid aktivieren: Zomboid Aura (Alpha).')
             messagebox.showinfo('Mod installiert','In Zomboid die Mod Zomboid Aura (Alpha) aktivieren. Nach Aenderung der Mod-Liste neu laden.')

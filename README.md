@@ -4,12 +4,29 @@ Windows-Programm fuer Spielbeleuchtung auf dem ROG Xbox Ally X und weiteren
 OpenRGB-Geraeten. Eigenstaendige Oberflaeche mit Spielprofilen, LED-Zonen und
 Wiederherstellung der vorherigen statischen Beleuchtung.
 
-**Version 0.1 ist eine erste testbare Programmversion.** Der zugrunde liegende
+**Version 0.2 ist eine testbare Programmversion mit Windows-EXE-Build.** Der zugrunde liegende
 OpenRGB-Farbtest und die statische Wiederherstellung wurden auf einem Ally
 bestaetigt. Die komplette neue Anwendung, Windows-Infobereich, Autostart und
 Live-Spielanbindungen muessen auf dem Geraet noch abgenommen werden.
 
-## Start auf Windows
+## Windows-EXE ohne Python
+
+Der erfolgreiche GitHub-Actions-Lauf stellt das Artefakt
+`AllyLight-0.2.0-windows-x64` bereit. Das ZIP vollstaendig entpacken und
+`AllyLight.exe` starten. Python, Tkinter, pystray und die weiteren Python-Bibliotheken
+sind in der EXE gebuendelt. OpenRGB bleibt separat erforderlich.
+
+Im Paket liegen Quellcode, Lizenztexte, Bibliotheksquellen, Build-Metadaten und
+SHA-256-Pruefsummen. Das Programm ist eine unsignierte Entwicklungsfassung.
+Eine Code-Signatur oder SmartScreen-Reputation wird durch das Buendeln nicht erzeugt;
+Windows- oder Unternehmensrichtlinien koennen den Start weiterhin blockieren.
+Keine Schutzfunktionen pauschal deaktivieren.
+
+Der Windows-Build startet die echte EXE mit bereinigtem Suchpfad und prueft Imports,
+Tk-Oberflaeche, Infobereich-API, Mod-Ressourcen und den eingefrorenen Worker. Es gibt
+keinen Hardwarezugriff im Build. Der Bericht liegt im Downloadpaket.
+
+## Start aus Python-Quellcode auf Windows
 
 Python 3.12 mit Tkinter und OpenRGB werden vorausgesetzt. OpenRGB ist eine eigene
 Anwendung und wird nicht mitgeliefert.
@@ -138,4 +155,5 @@ Persoenliche Profile und Testdaten gehoeren nicht ins Repository.
 Eigener Code: MIT. OpenRGB, Project Zomboid und deren Assets werden nicht mitgeliefert.
 `openrgb-python` ist eine externe GPL-3.0-lizenzierte Abhaengigkeit; weitere Hinweise
 stehen in `THIRD_PARTY_NOTICES.md`. Fuer eine spaetere gebuendelte EXE ist die Lizenzlage
-des gesamten Pakets vor Auslieferung zu pruefen. Diese Version startet aus Python-Quellcode.
+des gesamten Pakets vor Auslieferung zu pruefen. Der Quellcode bleibt MIT. Das kombinierte EXE-Paket wird unter GPL-3.0 mit den
+benoetigten Lizenztexten und Quellen bereitgestellt; pystray behaelt seine LGPL-Lizenz.

@@ -36,3 +36,11 @@ fuer die komplette neue Anwendung. Reale Geraeteberichte werden nicht veroeffent
 
 Die GUI konnte im Entwicklungscontainer mangels erreichbarem X-/Windows-Display
 noch nicht visuell geprueft werden. Kein Screenshot- oder Hardware-Erfolg wird daraus abgeleitet.
+
+## Windows-EXE 0.2
+
+Buildskript: tools/build_windows.py. Der Windows-Job baut mit PyInstaller, prueft die
+EXE mit bereinigtem Suchpfad und archiviert smoke-result, Quellcode, Lizenztexte und
+Pruefsummen. Aktuellen Jobstatus im PR pruefen; diese Beschreibung allein ist kein
+Nachweis eines erfolgreichen Binaerbuilds. Kein Codesignatur-Zertifikat vorhanden.
+Vier zusaetzliche Regressionstests pruefen Ressourcenpfade und EXE-Autostart.
