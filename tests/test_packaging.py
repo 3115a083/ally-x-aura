@@ -21,6 +21,14 @@ class BundleTests(unittest.TestCase):
     def test_frozen_mod_root_is_bundle_data_root(self):
         with patch.object(sys,'_MEIPASS','bundle-resources',create=True):
             self.assertEqual(resource_root(),Path('bundle-resources'))
+    def test_data_sources_are_absolute_independent_of_generated_spec_directory(self):
+        from tools.build_windows import bundle_data_args
+        root=Path(__file__).resolve().parents[1]
+        for argument in bundle_data_args(root):
+            source=Path(argument.removeprefix('--add-data=').split(';')[0])
+            self.assertTrue(source.is_absolute());self.assertTrue(source.exists())
+            self.assertEqual((root/'build'/source).resolve(),source)
+
     def test_source_mod_resources_exist(self):
         self.assertTrue((resource_root()/'mods/ZomboidAura/mod.info').exists())
 

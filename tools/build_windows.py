@@ -12,6 +12,13 @@ import zipfile
 ROOT=Path(__file__).resolve().parents[1]
 
 
+def bundle_data_args(root):
+    root=Path(root).resolve()
+    return ['--add-data='+str(root/'mods')+';mods',
+            '--add-data='+str(root/'LICENSE')+';licenses',
+            '--add-data='+str(root/'THIRD_PARTY_NOTICES.md')+';licenses']
+
+
 def main():
     if sys.platform!='win32':raise SystemExit('Build on Windows x64; cross compilation is not supported.')
     os.chdir(ROOT)
@@ -24,12 +31,11 @@ def main():
     PyInstaller.__main__.run([
         'app.py','--name=AllyLight','--onefile','--windowed','--noupx','--clean','--noconfirm',
         '--distpath=dist','--workpath=build/pyinstaller','--specpath=build',
-        '--icon='+str(icon_path),'--version-file=packaging/windows-version.txt',
+        '--icon='+str(icon_path),'--version-file='+str(ROOT/'packaging/windows-version.txt'),
         '--collect-submodules=openrgb','--hidden-import=pystray._win32',
         '--hidden-import=mss.windows','--hidden-import=win32timezone',
         '--copy-metadata=openrgb-python','--copy-metadata=pystray',
-        '--add-data=mods;mods','--add-data=LICENSE;licenses',
-        '--add-data=THIRD_PARTY_NOTICES.md;licenses'])
+        *bundle_data_args(ROOT)])
     # Run the actual EXE with no Python installation on PATH and no Python env hooks.
     env={k:v for k,v in os.environ.items() if not k.startswith(('PYTHON','VIRTUAL_ENV'))}
     env['PATH']=os.pathsep.join([str(Path(os.environ['SystemRoot'])/'System32'),os.environ['SystemRoot']])
@@ -52,6 +58,12 @@ def main():
     sources=package/'dependency-sources';sources.mkdir(exist_ok=True)
     subprocess.run([sys.executable,'-m','pip','download','--no-deps','--no-binary=:all:',
                     '--dest',str(sources),'openrgb-python==0.3.8','pystray==0.19.5'],check=True)
+    python_license=Path(sys.base_prefix)/'LICENSE.txt'
+    if python_license.exists():shutil.copy2(python_license,package/'LICENSES'/'CPython-LICENSE.txt')
+    tcl_root=Path(sys.base_prefix)/'tcl'
+    if tcl_root.exists():
+        for file in tcl_root.rglob('license.terms'):
+            target=package/'LICENSES'/'Tcl-Tk'/file.relative_to(tcl_root);target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(file,target)
     # Retain installed license files for all bundled runtime distributions.
     licenses=package/'LICENSES'/'installed';licenses.mkdir(parents=True,exist_ok=True)
     for distribution in importlib.metadata.distributions():
