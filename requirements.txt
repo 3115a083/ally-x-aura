@@ -1,0 +1,5 @@
+openrgb-python==0.3.8
+Pillow==12.3.0
+mss==10.2.0
+pystray==0.19.5
+pywin32==312; sys_platform == "win32"
