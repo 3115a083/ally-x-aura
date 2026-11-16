@@ -72,7 +72,7 @@ class App:
         # combobox popup and Spinbox. Do not inherit OS dark-mode text on white.
         for kind in ('TEntry','TCombobox','TSpinbox'):
             s.configure(kind,fieldbackground='#f1f5f9',foreground='#111827',
-                        background='#cbd5e1',insertcolor='#111827',padding=(10,12),
+                        background='#cbd5e1',insertcolor='#111827',padding=(10,14),
                         arrowsize=26,borderwidth=2,selectbackground='#155e75',selectforeground='#ffffff')
             s.map(kind,fieldbackground=[('disabled','#cbd5e1'),('readonly','#f1f5f9'),('!disabled','#f1f5f9')],
                   foreground=[('disabled','#475569'),('readonly','#111827'),('!disabled','#111827')],

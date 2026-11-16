@@ -99,6 +99,46 @@ def dominant_color(image):
     return tuple(round(v/group[0]) for v in group[1:])
 
 
+# Hue-specific HSV masks inspired by jath03's hue-game-sync.py.
+# Algorithm reimplemented with Pillow/colorsys for Windows, no Xlib/OpenCV.
+# Bounds use OpenCV's HSV scale: hue 0..180, saturation/value 0..255.
+HUE_PALETTE = (
+    ((175,100,200),(180,255,255),(255,0,0)),
+    ((0,100,200),(20,255,255),(255,50,0)),
+    ((22,200,200),(35,255,255),(255,255,0)),
+    ((40,100,200),(55,255,255),(0,255,0)),
+    ((60,100,200),(100,255,255),(0,255,255)),
+    ((100,100,200),(130,255,255),(0,0,255)),
+    ((135,150,200),(150,255,255),(150,0,255)),
+    ((150,100,200),(165,255,255),(255,0,255)),
+)
+
+def hue_game_color(image):
+    """Select Hue's palette by matching area, rather than averaging RGB.
+
+    Red spans hue zero. Give exact red to red instead of the overlapping orange
+    bucket. Empty/low-color screens return None, letting the engine time out.
+    """
+    image=image.convert('RGB').resize((96,54))
+    counts=[0]*len(HUE_PALETTE)
+    pixels=image.tobytes()
+    for r,g,b in zip(pixels[0::3],pixels[1::3],pixels[2::3]):
+        h,s,v=colorsys.rgb_to_hsv(r/255,g/255,b/255)
+        hsv=(h*180,s*255,v*255)
+        for index,(low,high,_) in enumerate(HUE_PALETTE):
+            inside=all(a<=x<=b for x,a,b in zip(hsv,low,high))
+            if index==0 and hsv[0]<=2 and hsv[1]>=100 and hsv[2]>=200:
+                inside=True
+            if index==1 and hsv[0]<=2:
+                inside=False
+            if inside:counts[index]+=1
+    winner=max(range(len(counts)),key=counts.__getitem__)
+    # Original 20,000 of 640x360 pixels, scaled to the sample resolution.
+    if counts[winner] < 96*54*(20000/(640*360)):
+        return None
+    return HUE_PALETTE[winner][2]
+
+
 def smooth(previous,color,alpha=.5):
     if previous is None:return color
     return tuple(round(a*(1-alpha)+b*alpha) for a,b in zip(previous,color))
@@ -153,6 +193,6 @@ class ScreenSource:
         after=reader.current()
         if not after or after['hwnd']!=before['hwnd'] or after['exe']!=before['exe']:return None
         image=Image.frombytes('RGB',shot.size,shot.rgb)
-        return dominant_color(image)
+        return hue_game_color(image)
     def close(self):
         if self.capture:self.capture.close();self.capture=None

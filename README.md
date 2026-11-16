@@ -91,8 +91,11 @@ Das mitgelieferte Profil sucht nach `Hue.exe`. Eine abweichende Programmdatei l�
 sich auswählen oder mit **Vordergrundspiel in 5 Sekunden uebernehmen** erfassen.
 Danach das Profil speichern und einer Zone **Bildschirmfarbe** zuordnen.
 
-AllyLight wertet die dominante gesättigte Farbe im Spielfenster aus. Schwarze Geometrie
-und weiße UI-Flächen werden ausgefiltert. Bei einem Fokuswechsel wird die Probe
+AllyLight erkennt die acht Hue-Palettenfarben ueber HSV-Farbbereiche und waehlt
+die Farbe mit der groessten passenden Bildflaeche. Grundlage ist das Verfahren aus
+[jath03s Hue-Projekt](https://gist.github.com/jath03/a775de26d03812ee58faa94593955f1b),
+neu fuer unseren Windows-Aufnahmepfad implementiert. Schwarz und Weiss zaehlen nicht
+als Palettenfarbe; mindestens rund 8,7 Prozent der Bildflaeche muessen passen. Bei einem Fokuswechsel wird die Probe
 verworfen. HDR, Overlays und exklusives Vollbild können das Ergebnis beeinflussen;
 zuerst im Fenstermodus testen.
 

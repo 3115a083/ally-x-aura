@@ -17,3 +17,9 @@ Binaerdistribution muss insbesondere GPL-/LGPL-Pflichten beruecksichtigen.
 
 Buildwerkzeug: PyInstaller 6.22.3, GPL mit Bootloader-Ausnahme, https://pyinstaller.org/
 Die kombinierte Binaerfassung wird unter GPL-3.0 verteilt; eigener Quellcode bleibt MIT.
+
+Hue-Farberkennung: Algorithmusreferenz und HSV-Palettengrenzen nach jath03,
+https://gist.github.com/jath03/a775de26d03812ee58faa94593955f1b .
+Das Gist nennt keine ausdrueckliche Lizenz. Es wird kein Skript daraus gebuendelt;
+das Verfahren ist eigenstaendig mit Pillow/colorsys implementiert.
+Xlib, NumPy und OpenCV werden dafuer nicht eingebunden.
