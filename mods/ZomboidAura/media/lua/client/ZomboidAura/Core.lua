@@ -6,6 +6,7 @@ ZA.sounds = {}
 ZA.seq = 0
 ZA.session = tostring(getTimestampMs())
 ZA.lastWrite = 0
+ZA.telemetryStopped = false
 ZA.captureWorld = false -- Opt-in: world AI noise is not the same as audible FMOD audio.
 ZA.modes = {"off", "health", "endurance", "sound", "combined"}
 ZA.categories = {"all", "world", "zombie", "vehicle", "player", "gunshot", "alarm"}
@@ -128,9 +129,20 @@ local function onWorldSound(x,y,z,radius,volume,source)
         end
     end
 end
+-- B42 uses CharacterStat; B41 exposes the legacy getter.
+local function enduranceValue(player)
+    local stats = player:getStats()
+    if CharacterStat and CharacterStat.ENDURANCE and stats.get then
+        return number(stats:get(CharacterStat.ENDURANCE), 0, 1)
+    elseif stats.getEndurance then
+        return number(stats:getEndurance(), 0, 1)
+    end
+    error("Unsupported endurance API; telemetry stopped until reload")
+end
 local function playerJSON(player, index, now)
     local health = number(player:getBodyDamage():getOverallBodyHealth()/100, 0, 1) or 0
-    local endurance = number(player:getStats():getEndurance(), 0, 1) or 0
+    local endurance = enduranceValue(player)
+    if endurance == nil then error("Invalid endurance; telemetry stopped until reload") end
     local sounds = {}
     for _, s in ipairs(ZA.sounds) do
         local age = (now-s.time)/1000
@@ -145,6 +157,7 @@ local function playerJSON(player, index, now)
     return '{"id":'..index..',"health":'..health..',"endurance":'..endurance..',"sounds":['..table.concat(sounds,',')..']}'
 end
 function ZA.tick()
+    if ZA.telemetryStopped then return end
     local now = getTimestampMs()
     if now-ZA.lastWrite < 100 then return end
     ZA.lastWrite = now
@@ -161,7 +174,10 @@ function ZA.tick()
         local frame = '{"protocol":1,"session":'..quote(ZA.session)..',"seq":'..ZA.seq..',"players":['..table.concat(players,',')..'],"routes":['..table.concat(routes,',')..']}'
         writeFile("za-frame-"..tostring(ZA.seq % 2)..".json",frame.."\n")
     end)
-    if not ok then warnOnce("telemetry",err) end
+    if not ok then
+        ZA.telemetryStopped = true -- Kahlua logs even errors caught by pcall. Never retry each tick.
+        warnOnce("telemetry stopped until reload",err)
+    end
 end
 ZA.loadConfig()
 Events.OnTick.Add(ZA.tick)

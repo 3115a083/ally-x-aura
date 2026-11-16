@@ -44,3 +44,13 @@ EXE mit bereinigtem Suchpfad und archiviert smoke-result, Quellcode, Lizenztexte
 Pruefsummen. Aktuellen Jobstatus im PR pruefen; diese Beschreibung allein ist kein
 Nachweis eines erfolgreichen Binaerbuilds. Kein Codesignatur-Zertifikat vorhanden.
 Vier zusaetzliche Regressionstests pruefen Ressourcenpfade und EXE-Autostart.
+
+## B42-Ausdauer-Hotfix
+
+Ein Nutzerbericht aus B42.22.2 zeigt wiederholte Fehler in playerJSON:133.
+Der aktuelle Stats-Zugriff erfolgt ueber get(CharacterStat.ENDURANCE), der
+B41-Getter bleibt als erkannter Fallback erhalten. Unerwartete Telemetriefehler
+stoppen den Export bis zum Lua-Neuladen, da Kahlua auch abgefangene Fehler loggt.
+Vier Lua-5.1-Regressionstests (requirements-test.txt) pruefen beide APIs,
+fehlende API ohne Wiederholung sowie identische B41/B42-Dateien.
+Simulation ersetzt keine erneute Live-Abnahme in B42.22.2.
