@@ -2,9 +2,14 @@
 
 ## 2026-11-16, Entwicklungsstand
 
-25 automatisierte Funktionstests bestehen auf Python 3.12/Linux mit installiertem
-OpenRGB-Python. Zusaetzliche native Formulartests sind ohne Display nicht ausfuehrbar
-und werden als uebersprungen gemeldet. Python-Quellen kompilieren.
+25 automatisierte Funktionstests bestehen auf Python 3.12/Linux; drei native
+Formulartests werden dort ohne Display als uebersprungen gemeldet. Auf dem
+Windows-GitHub-Runner bestehen alle 28 Tests, einschliesslich Erzeugen aller vier
+GUI-Seiten und Erhalt ungespeicherter Texte. Python-Quellen kompilieren auf beiden Hosts.
+
+Nachweis: https://github.com/3115a083/ally-x-aura/actions/runs/43895818743
+Getesteter Quellstand: b86f87be77e8176fc09a78fbd8e9a932c7f6a697.
+Die nativen Formulartests sind keine visuelle oder physische Hardware-Abnahme.
 
 Geprueft: Profilmatching, Konfigurationsvalidierung, LED-Zonen, Speichern vor Zugriff,
 Wiederherstellung und deren Fehlerspeicherung, Recovery beim naechsten Verbinden,
