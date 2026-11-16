@@ -39,8 +39,9 @@ class App:
         self.notebook=ttk.Notebook(root);self.notebook.pack(fill='both',expand=True,padx=20,pady=(0,16))
         self.pages={}
         for name in ('Uebersicht','Geraete & Zonen','Spielprofile','Einstellungen'):
-            page=ttk.Frame(self.notebook,padding=20);self.notebook.add(page,text=name);self.pages[name]=page
+            self.pages[name]=self.scroll_page(self.notebook,name)
         self.build_overview();self.build_devices();self.build_profiles();self.build_settings()
+        self.wrap_action_rows(self.root)
         self.root.protocol('WM_DELETE_WINDOW',self.close_window)
         self.set_toggle();self.refresh_profiles();self.refresh_zones()
         self.setup_tray()
@@ -54,23 +55,76 @@ class App:
 
     def style(self):
         s=ttk.Style();s.theme_use('clam')
-        s.configure('.',font=('Segoe UI',11),background='#172033',foreground='#e5e7eb')
+        s.configure('.',font=('Segoe UI',12),background='#172033',foreground='#e5e7eb')
         s.configure('TFrame',background='#172033');s.configure('TLabel',background='#172033',foreground='#e5e7eb')
         s.configure('Title.TLabel',font=('Segoe UI',25,'bold'),foreground='#70e1ce')
         s.configure('Heading.TLabel',font=('Segoe UI',17,'bold'))
         s.configure('Muted.TLabel',foreground='#a7b3c8')
-        s.configure('TButton',padding=(12,9),background='#283850',foreground='#f3f4f6',borderwidth=0)
+        s.configure('TButton',padding=(16,12),background='#283850',foreground='#f3f4f6',borderwidth=0)
         s.map('TButton',background=[('active','#375071')])
         s.configure('TNotebook',background='#111827',borderwidth=0)
         s.configure('TNotebook.Tab',padding=(20,12),background='#1d2b42',foreground='#b8c6db')
         s.map('TNotebook.Tab',background=[('selected','#29455a')],foreground=[('selected','#91f3de')])
-        s.configure('Treeview',rowheight=32,fieldbackground='#111b2b',background='#111b2b',foreground='#e5e7eb',borderwidth=0)
+        s.configure('Treeview',rowheight=46,fieldbackground='#111b2b',background='#111b2b',foreground='#e5e7eb',borderwidth=0)
         s.configure('Treeview.Heading',background='#283850',foreground='#dfe8f4',padding=6)
         s.map('Treeview',background=[('selected','#235c68')])
-        s.configure('TEntry',fieldbackground='#0e1727',foreground='#edf2f7',padding=7)
-        s.configure('TCombobox',fieldbackground='#e2e8f0',foreground='#111827',padding=5)
-        s.map('TCombobox',fieldbackground=[('readonly','#e2e8f0')],foreground=[('readonly','#111827')])
-        s.configure('TCheckbutton',background='#172033',foreground='#e5e7eb',padding=5)
+        # Explicit paired colors for every field state, including the native
+        # combobox popup and Spinbox. Do not inherit OS dark-mode text on white.
+        for kind in ('TEntry','TCombobox','TSpinbox'):
+            s.configure(kind,fieldbackground='#f1f5f9',foreground='#111827',
+                        background='#cbd5e1',insertcolor='#111827',padding=(10,14),
+                        arrowsize=26,borderwidth=2,selectbackground='#155e75',selectforeground='#ffffff')
+            s.map(kind,fieldbackground=[('disabled','#cbd5e1'),('readonly','#f1f5f9'),('!disabled','#f1f5f9')],
+                  foreground=[('disabled','#475569'),('readonly','#111827'),('!disabled','#111827')],
+                  selectforeground=[('!disabled','#ffffff')],selectbackground=[('!disabled','#155e75')],
+                  bordercolor=[('focus','#70e1ce'),('!focus','#64748b')])
+        self.root.option_add('*TCombobox*Listbox.background','#f1f5f9')
+        self.root.option_add('*TCombobox*Listbox.foreground','#111827')
+        self.root.option_add('*TCombobox*Listbox.selectBackground','#155e75')
+        self.root.option_add('*TCombobox*Listbox.selectForeground','#ffffff')
+        self.root.option_add('*TCombobox*Listbox.font',('Segoe UI',22))
+        s.configure('TCheckbutton',background='#172033',foreground='#e5e7eb',padding=(10,14),indicatorsize=24)
+        s.map('TCheckbutton',foreground=[('disabled','#a7b3c8'),('!disabled','#e5e7eb')],background=[('!disabled','#172033')])
+        s.configure('Vertical.TScrollbar',arrowsize=26,width=26)
+
+    def scroll_page(self, notebook, name):
+        shell=ttk.Frame(notebook)
+        canvas=tk.Canvas(shell,bg='#172033',highlightthickness=0)
+        bar=ttk.Scrollbar(shell,orient='vertical',command=canvas.yview)
+        canvas.configure(yscrollcommand=bar.set)
+        bar.pack(side='right',fill='y');canvas.pack(side='left',fill='both',expand=True)
+        page=ttk.Frame(canvas,padding=20)
+        window=canvas.create_window((0,0),window=page,anchor='nw')
+        page.bind('<Configure>',lambda e:canvas.configure(scrollregion=canvas.bbox('all')))
+        canvas.bind('<Configure>',lambda e:canvas.itemconfigure(window,width=e.width))
+        notebook.add(shell,text=name)
+        return page
+
+    def wrap_action_rows(self, parent):
+        for frame in parent.winfo_children():
+            children=frame.winfo_children()
+            if children and all(isinstance(w,ttk.Button) for w in children):
+                for w in children:w.pack_forget()
+                def reflow(event, widgets=children, owner=frame):
+                    available=max(1,event.width);row=0;column=0;used=0
+                    for w in widgets:
+                        width=w.winfo_reqwidth()+12
+                        if column and used+width>available:row+=1;column=0;used=0
+                        w.grid(row=row,column=column,sticky='w',padx=(0,12),pady=5)
+                        used+=width;column+=1
+                frame.bind('<Configure>',reflow)
+            self.wrap_action_rows(frame)
+
+    def touch_number(self,parent,variable,low,high):
+        box=ttk.Frame(parent)
+        def step(delta):
+            try:value=int(variable.get())
+            except ValueError:value=low
+            variable.set(str(max(low,min(high,value+delta))))
+        ttk.Button(box,text='-',width=3,command=lambda:step(-1)).pack(side='left')
+        ttk.Entry(box,textvariable=variable,width=5,justify='center').pack(side='left',padx=5)
+        ttk.Button(box,text='+',width=3,command=lambda:step(1)).pack(side='left')
+        return box
 
     def heading(self,parent,title,subtitle):
         ttk.Label(parent,text=title,style='Heading.TLabel').pack(anchor='w')
@@ -96,7 +150,7 @@ class App:
         self.device_tree.pack(fill='x');self.device_tree.bind('<<TreeviewSelect>>',self.device_selected)
         test=ttk.Frame(p);test.pack(fill='x',pady=10)
         ttk.Label(test,text='LED-Index:').pack(side='left');self.led_index=tk.StringVar(value='0')
-        ttk.Spinbox(test,from_=0,to=8191,textvariable=self.led_index,width=6).pack(side='left',padx=8)
+        self.touch_number(test,self.led_index,0,8191).pack(side='left',padx=8)
         ttk.Button(test,text='Diese LED 2 Sekunden testen',command=self.test_led).pack(side='left')
         ttk.Button(test,text='Geraete neu laden',command=self.refresh_devices).pack(side='right')
         self.zone_tree=ttk.Treeview(p,columns=('name','device','leds'),show='headings',height=5)
@@ -113,7 +167,7 @@ class App:
     def build_profiles(self):
         p=self.pages['Spielprofile'];self.heading(p,'Profile fuer deine Spiele','Aktiv wird nur das Profil des Vordergrundspiels. Auf dem Desktop kehrt die Ausgangsbeleuchtung zurueck.')
         row=ttk.Frame(p);row.pack(fill='x')
-        self.profile_choice=tk.StringVar();self.profile_combo=ttk.Combobox(row,textvariable=self.profile_choice,state='readonly',width=30)
+        self.profile_choice=tk.StringVar();self.profile_combo=ttk.Combobox(row,textvariable=self.profile_choice,state='readonly',width=23)
         self.profile_combo.pack(side='left');self.profile_combo.bind('<<ComboboxSelected>>',lambda e:self.load_profile_form())
         ttk.Button(row,text='Profil hinzufuegen',command=self.add_profile).pack(side='left',padx=10)
         self.profile_enabled=tk.BooleanVar();ttk.Checkbutton(row,text='Profil aktiv',variable=self.profile_enabled).pack(side='right')
@@ -132,8 +186,11 @@ class App:
 
     def build_settings(self):
         p=self.pages['Einstellungen'];self.heading(p,'Verbindungen und Start','AllyLight verbindet sich lokal mit dem OpenRGB-SDK-Server auf Port 6742.')
-        ttk.Label(p,text='Zomboid-Lua-Ordner').pack(anchor='w')
+        ttk.Label(p,text='Zomboid-Lua-Ordner oder PZ_Pulse-Ordner').pack(anchor='w')
         self.cache_var=tk.StringVar(value=self.cfg['cache']);ttk.Entry(p,textvariable=self.cache_var).pack(fill='x',pady=6)
+        self.zomboid_source_var=tk.StringVar(value=self.cfg.get('zomboid_source','auto'))
+        ttk.Label(p,text='Spieldaten: auto (PZ Pulse bevorzugt), pzpulse oder addon').pack(anchor='w')
+        ttk.Combobox(p,textvariable=self.zomboid_source_var,values=['auto','pzpulse','addon'],state='readonly').pack(fill='x',pady=6)
         row=ttk.Frame(p);row.pack(fill='x')
         ttk.Button(row,text='Ordner waehlen',command=self.pick_cache).pack(side='left')
         ttk.Button(row,text='Zomboid-Mod installieren',command=self.install_mod).pack(side='left',padx=10)
@@ -193,7 +250,7 @@ class App:
 
     def zone_dialog(self,existing=None):
         if not self.devices:self.error('Keine OpenRGB-Geraete. SDK-Server starten und neu verbinden.');return
-        win=tk.Toplevel(self.root);win.title('LED-Zone');win.geometry('540x400');win.transient(self.root);win.grab_set()
+        win=tk.Toplevel(self.root);win.title('LED-Zone');win.transient(self.root);win.grab_set()
         box=ttk.Frame(win,padding=22);box.pack(fill='both',expand=True)
         name=tk.StringVar(value=existing['name'] if existing else 'Neue Zone')
         leds=tk.StringVar(value=','.join(map(str,existing['leds'])) if existing else '0')
@@ -259,7 +316,7 @@ class App:
         except Exception as exc:self.error(exc)
 
     def add_profile(self):
-        win=tk.Toplevel(self.root);win.title('Profil hinzufuegen');win.geometry('430x250');win.transient(self.root);win.grab_set()
+        win=tk.Toplevel(self.root);win.title('Profil hinzufuegen');win.transient(self.root);win.grab_set()
         b=ttk.Frame(win,padding=20);b.pack(fill='both',expand=True)
         name=tk.StringVar(value='Neues Profil');source=tk.StringVar(value='hue')
         ttk.Label(b,text='Profilname').pack(anchor='w');ttk.Entry(b,textvariable=name).pack(fill='x',pady=8)
@@ -292,7 +349,7 @@ class App:
         p=self.profile()
         if not p or not self.cfg['zones']:self.error('Zuerst eine LED-Zone anlegen.');return
         route=p['routes'][index] if index is not None else None
-        win=tk.Toplevel(self.root);win.title('Anzeige zuordnen');win.geometry('520x460');win.transient(self.root);win.grab_set()
+        win=tk.Toplevel(self.root);win.title('Anzeige zuordnen');win.transient(self.root);win.grab_set()
         b=ttk.Frame(win,padding=22);b.pack(fill='both',expand=True)
         zones=self.cfg['zones'];labels=[f"{i+1}: {z['name']}" for i,z in enumerate(zones)]
         selected=next((i for i,z in enumerate(zones) if route and route['zone']==z['id']),0)
@@ -304,7 +361,7 @@ class App:
         for label,var,values in [('Zone',zone,labels),('Anzeige',mode,[MODE_LABELS[m] for m in modes])]:
             ttk.Label(b,text=label).pack(anchor='w');ttk.Combobox(b,textvariable=var,values=values,state='readonly').pack(fill='x',pady=(3,12))
         row=ttk.Frame(b);row.pack(fill='x',pady=8)
-        ttk.Label(row,text='Helligkeit %').pack(side='left');ttk.Spinbox(row,from_=0,to=100,textvariable=brightness,width=6).pack(side='left',padx=10)
+        ttk.Label(row,text='Helligkeit %').pack(side='left');self.touch_number(row,brightness,0,100).pack(side='left',padx=10)
         ttk.Label(row,text='Spieler').pack(side='left');ttk.Combobox(row,textvariable=player,values=['1','2','3','4'],state='readonly',width=5).pack(side='left',padx=10)
         ttk.Label(b,text='Geraeuschfilter').pack(anchor='w');ttk.Combobox(b,textvariable=category,values=['all','world','zombie','vehicle','player','gunshot','alarm'],state='readonly').pack(fill='x',pady=8)
         def choose():
@@ -342,7 +399,7 @@ class App:
 
     def save_settings(self):
         try:
-            self.cfg['cache']=self.cache_var.get().strip();self.cfg['openrgb_exe']=self.openrgb_var.get().strip();self.cfg['start_openrgb']=self.start_rgb.get()
+            self.cfg['zomboid_source']=self.zomboid_source_var.get();self.cfg['cache']=self.cache_var.get().strip();self.cfg['openrgb_exe']=self.openrgb_var.get().strip();self.cfg['start_openrgb']=self.start_rgb.get()
             self.commit();self.log('Einstellungen gespeichert.')
         except Exception as exc:self.error(exc)
 

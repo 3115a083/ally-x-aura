@@ -71,6 +71,7 @@ def main():
     shutil.copy2(ROOT/'dist/AllyLight.exe',package/'AllyLight.exe')
     shutil.copy2(smoke,package/'build-smoke-result.json')
     shutil.copy2(smoke.with_suffix('.png'),package/'build-smoke-window.png')
+    shutil.copytree(smoke.parent/'screens',package/'build-ui-screens',dirs_exist_ok=True)
     for name in ('LICENSE','THIRD_PARTY_NOTICES.md'):
         shutil.copy2(ROOT/name,package/name)
     shutil.copytree(ROOT/'packaging/notices',package/'LICENSES',dirs_exist_ok=True)
@@ -98,7 +99,7 @@ def main():
                 if source.is_file():
                     target=licenses/name/str(file).replace('..','_');target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(source,target)
     (package/'LIESMICH.txt').write_text(
-        'AllyLight 0.2.0 fuer Windows x64\n\nZIP vollstaendig entpacken und AllyLight.exe starten.\n'
+        'AllyLight 0.3.0 fuer Windows x64\n\nZIP vollstaendig entpacken und AllyLight.exe starten.\n'
         'Python ist enthalten. OpenRGB bleibt separat erforderlich: SDK Server auf Port 6742 starten.\n'
         'Programmeinstellungen bleiben unter %LOCALAPPDATA%\\AllyLight erhalten.\n'
         'Diese Entwicklungsfassung ist nicht mit einem Herausgeberzertifikat codesigniert.\n'
@@ -108,7 +109,7 @@ def main():
         'Lizenz des kombinierten Bundles: GPL-3.0; eigener Quellcode zusaetzlich MIT.\n'
         'Die eingebundene pystray-Bibliothek steht unter LGPL-3.0; Hinweise unter LICENSES.\n'
         'Der hardwarefreie Build-Selbsttest ersetzt keinen Spiel-/Geraetetest.\n',encoding='utf-8')
-    manifest={'application':'AllyLight','version':'0.2.0','source_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+    manifest={'application':'AllyLight','version':'0.3.0','source_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
               'python':sys.version.split()[0],'pyinstaller':importlib.metadata.version('pyinstaller'),'codesigned':False,
               'runtime_dependencies':{name:importlib.metadata.version(name) for name in ['openrgb-python','Pillow','mss','pystray','pywin32']}}
     (package/'BUILD-INFO.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')

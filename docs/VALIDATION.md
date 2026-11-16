@@ -44,3 +44,23 @@ EXE mit bereinigtem Suchpfad und archiviert smoke-result, Quellcode, Lizenztexte
 Pruefsummen. Aktuellen Jobstatus im PR pruefen; diese Beschreibung allein ist kein
 Nachweis eines erfolgreichen Binaerbuilds. Kein Codesignatur-Zertifikat vorhanden.
 Vier zusaetzliche Regressionstests pruefen Ressourcenpfade und EXE-Autostart.
+
+## B42-Ausdauer-Hotfix
+
+Ein Nutzerbericht aus B42.22.2 zeigt wiederholte Fehler in playerJSON:133.
+Der aktuelle Stats-Zugriff erfolgt ueber get(CharacterStat.ENDURANCE), der
+B41-Getter bleibt als erkannter Fallback erhalten. Unerwartete Telemetriefehler
+stoppen den Export bis zum Lua-Neuladen, da Kahlua auch abgefangene Fehler loggt.
+Vier Lua-5.1-Regressionstests (requirements-test.txt) pruefen beide APIs,
+fehlende API ohne Wiederholung sowie identische B41/B42-Dateien.
+Simulation ersetzt keine erneute Live-Abnahme in B42.22.2.
+
+## 0.3: PZ Pulse und Touch-Bedienung
+
+PZ-Pulse-Parser anhand eines bereitgestellten Exportformats implementiert.
+Nur synthetische Fixtures im Repository. Acht Tests decken Prozentwerte,
+JavaScript-Ablehnung, fehlende/ungueltige Werte, Heartbeat-Frische trotz
+alter data.txt, Quellenauswahl und nicht verfuegbare Soundzonen ab.
+Native UI-Tests pruefen Feldfarben in mehreren Zustaenden, Mindesthoehen
+und scrollbare Einstellungen. Linux: 45 bestanden, 5 native UI-Tests
+ohne Display uebersprungen. Windows-CI und visuelle Touch-Abnahme separat pruefen.

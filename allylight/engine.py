@@ -27,6 +27,7 @@ def output_frames(cfg,profile,players=None,color=None):
         else:
             player=next((p for p in players or [] if p['id']==route['player']),None)
             if player is None:continue
+            if mode=='sound' and player.get('sound_available') is False:continue
             colors=render(route,player,size,bearing_offset=math.radians(zone.get('offset',0)),reverse=zone.get('reverse',False))
         frames.setdefault(zone['device'],{}).update(zip(zone['leds'],colors))
     return frames
@@ -107,12 +108,13 @@ def worker(commands,events,initial_config,data_dir,demo=False):
                     if profile:
                         pname=profile['name']
                         if profile['source']=='zomboid':
-                            frame=read_zomboid(cfg['cache'])
+                            frame=read_zomboid(cfg['cache'],source=cfg.get('zomboid_source','auto'))
                             if frame:
-                                frames=output_frames(cfg,profile,frame['players']);status='Zomboid-Daten empfangen.'
+                                frames=output_frames(cfg,profile,frame['players'])
+                                status=('PZ Pulse: Gesundheit/Ausdauer empfangen. Keine Geraeuschrichtungen.' if frame.get('source')=='pz-pulse' else 'Zomboid-Daten empfangen.')
                             else:
                                 frames=output_frames(cfg,profile,[])
-                                status='Warte auf Zomboid-Mod oder frische Spieldaten.'
+                                status='Warte auf frische Spieldaten. PZ Pulse: data.txt und heartbeat.txt pruefen.'
                         elif not any(r['mode']=='screen' for r in profile['routes']):
                             frames=output_frames(cfg,profile)
                             status='Feste Profilfarbe aktiv.'

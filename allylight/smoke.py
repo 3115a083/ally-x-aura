@@ -43,6 +43,18 @@ def run_smoke(output,data_dir=None):
                 root.lift();root.update_idletasks()
                 box=(root.winfo_rootx(),root.winfo_rooty(),root.winfo_rootx()+root.winfo_width(),root.winfo_rooty()+root.winfo_height())
                 ImageGrab.grab(bbox=box).save(output.with_suffix('.png'))
+                # Capture each actual frozen page with synthetic demo data only.
+                screens=output.parent/'screens';screens.mkdir(exist_ok=True)
+                for index in range(4):
+                    app.notebook.select(index);root.update()
+                    ImageGrab.grab(bbox=box).save(screens/f'page-{index}.png')
+                app.notebook.select(2);root.update()
+                root.tk.call('ttk::combobox::Post',app.profile_combo)
+                root.update()
+                ImageGrab.grab(bbox=box).save(screens/'profile-dropdown.png')
+                root.tk.call('ttk::combobox::Unpost',app.profile_combo)
+                result['checks']['page_screenshots']='pass'
+
                 result['status']='pass'
             except Exception:result['error']=traceback.format_exc()
             finally:app.quit()
