@@ -29,6 +29,15 @@ class BundleTests(unittest.TestCase):
             self.assertTrue(source.is_absolute());self.assertTrue(source.exists())
             self.assertEqual((root/'build'/source).resolve(),source)
 
+    def test_external_program_does_not_inherit_temporary_bundle_path(self):
+        from allylight.runtime import external_environment
+        root=str(Path('bundle').resolve())
+        env={'PATH':os.pathsep.join([str(Path('system').resolve()),root,str(Path(root)/'win32')]),'KEEP':'yes'}
+        clean=external_environment(env,root)
+        self.assertEqual(clean['PATH'],str(Path('system').resolve()))
+        self.assertEqual(clean['KEEP'],'yes')
+        self.assertEqual(env['PATH'].count(root),2)
+
     def test_source_mod_resources_exist(self):
         self.assertTrue((resource_root()/'mods/ZomboidAura/mod.info').exists())
 

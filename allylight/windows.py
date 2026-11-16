@@ -55,5 +55,15 @@ def launch_openrgb(executable):
     try:
         with socket.create_connection(('127.0.0.1',6742),timeout=.3):return False
     except OSError:pass
-    subprocess.Popen([str(path),'--server','--startminimized'],cwd=str(path.parent))
+    from .runtime import external_environment
+    # A one-file bundle changes the Windows DLL search directory. Do not pass that
+    # temporary directory to an independently installed OpenRGB process.
+    kernel=None
+    if getattr(sys,'frozen',False) and sys.platform=='win32':
+        import ctypes
+        kernel=ctypes.windll.kernel32;kernel.SetDllDirectoryW(None)
+    try:
+        subprocess.Popen([str(path),'--server','--startminimized'],cwd=str(path.parent),env=external_environment())
+    finally:
+        if kernel:kernel.SetDllDirectoryW(str(getattr(sys,'_MEIPASS',Path(sys.executable).parent)))
     return True

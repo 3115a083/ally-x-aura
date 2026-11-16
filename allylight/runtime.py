@@ -15,3 +15,15 @@ def launch_command(script,data_dir,frozen=None,executable=None):
         return exe,subprocess.list2cmdline(['--tray','--data-dir',str(Path(data_dir).resolve())]),exe.parent
     pythonw=exe.with_name('pythonw.exe')
     return pythonw,subprocess.list2cmdline([str(Path(script).resolve()),'--tray','--data-dir',str(Path(data_dir).resolve())]),Path(script).resolve().parent
+
+
+def external_environment(environment=None,bundle_root=None):
+    import os
+    result=dict(os.environ if environment is None else environment)
+    root=bundle_root or getattr(sys,'_MEIPASS',None)
+    if root:
+        from pathlib import PureWindowsPath
+        prefix=str(PureWindowsPath(root)).casefold().rstrip('\\')
+        entries=result.get('PATH','').split(os.pathsep)
+        result['PATH']=os.pathsep.join(p for p in entries if not (str(PureWindowsPath(p)).casefold()==prefix or str(PureWindowsPath(p)).casefold().startswith(prefix+'\\')))
+    return result
