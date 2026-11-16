@@ -1,159 +1,158 @@
 # AllyLight
 
-Windows-Programm fuer Spielbeleuchtung auf dem ROG Xbox Ally X und weiteren
-OpenRGB-Geraeten. Eigenstaendige Oberflaeche mit Spielprofilen, LED-Zonen und
-Wiederherstellung der vorherigen statischen Beleuchtung.
+**Spielbeleuchtung für den ROG Xbox Ally X und weitere OpenRGB-Geräte.**
 
-**Version 0.2 ist eine testbare Programmversion mit Windows-EXE-Build.** Der zugrunde liegende
-OpenRGB-Farbtest und die statische Wiederherstellung wurden auf einem Ally
-bestaetigt. Die komplette neue Anwendung, Windows-Infobereich, Autostart und
-Live-Spielanbindungen muessen auf dem Geraet noch abgenommen werden.
+AllyLight läuft als eigenes Windows-Programm neben OpenRGB. Es erkennt das aktive
+Spiel, lädt das passende Profil und überträgt Spielinformationen auf ausgewählte
+LEDs. Nach dem Spiel stellt es die vorherige statische Beleuchtung wieder her.
 
-## Windows-EXE ohne Python
+> **Entwicklungsversion 0.2.0:** Die Windows-EXE enthält Python und die benötigten
+> Bibliotheken. OpenRGB bleibt separat erforderlich. Die vollständige Abnahme der
+> neuen Anwendung auf dem Ally ist noch offen.
 
-Der erfolgreiche GitHub-Actions-Lauf stellt das Artefakt
-`AllyLight-0.2.0-windows-x64` bereit. Das ZIP vollstaendig entpacken und
-`AllyLight.exe` starten. Python, Tkinter, pystray und die weiteren Python-Bibliotheken
-sind in der EXE gebuendelt. OpenRGB bleibt separat erforderlich.
+## Download und Start
 
-Im Paket liegen Quellcode, Lizenztexte, Bibliotheksquellen, Build-Metadaten und
-SHA-256-Pruefsummen. Das Programm ist eine unsignierte Entwicklungsfassung.
-Eine Code-Signatur oder SmartScreen-Reputation wird durch das Buendeln nicht erzeugt;
-Windows- oder Unternehmensrichtlinien koennen den Start weiterhin blockieren.
-Keine Schutzfunktionen pauschal deaktivieren.
+1. Unter [Actions → tests](https://github.com/3115a083/ally-x-aura/actions/workflows/tests.yml)
+   einen erfolgreichen Build des Branches `feat/allylight-desktop` öffnen.
+2. Das Artefakt **AllyLight-0.2.0-windows-x64** herunterladen und das ZIP vollständig entpacken.
+   Für GitHub-Artefakte ist gegebenenfalls eine Anmeldung nötig. Sie bleiben 30 Tage verfügbar.
+3. In OpenRGB die gewünschte Ausgangsbeleuchtung als **Static** oder **Direct** einstellen.
+   Unter **SDK Server** den Server auf Port **6742** starten und OpenRGB geöffnet lassen.
+4. **AllyLight.exe** starten. Eine separate Python-Installation oder ein `pip`-Befehl ist nicht nötig.
 
-Der Windows-Build startet die echte EXE mit bereinigtem Suchpfad und prueft Imports,
-Tk-Oberflaeche, Infobereich-API, Mod-Ressourcen und den eingefrorenen Worker. Es gibt
-keinen Hardwarezugriff im Build. Der Bericht liegt im Downloadpaket.
+Die EXE ist noch **nicht mit einem Herausgeberzertifikat signiert**. Windows SmartScreen
+oder eine Unternehmensrichtlinie kann deshalb weiterhin nachfragen oder den Start
+blockieren. Keine Schutzfunktionen pauschal deaktivieren. Zur Integritätsprüfung liegt
+`SHA256SUMS.txt` bei.
 
-## Start aus Python-Quellcode auf Windows
+## Erste Einrichtung
 
-Python 3.12 mit Tkinter und OpenRGB werden vorausgesetzt. OpenRGB ist eine eigene
-Anwendung und wird nicht mitgeliefert.
+1. Unter **Geraete & Zonen** das erkannte OpenRGB-Gerät auswählen.
+2. LED-Indizes einzeln testen. Jede Testanzeige endet nach etwa zwei Sekunden mit einer Wiederherstellung.
+3. Selbst beobachtete Bereiche als Zonen anlegen, zum Beispiel einen linken und einen rechten Ring.
+4. Unter **Spielprofile** eine Anzeige zuordnen, die Programmdatei prüfen und das Profil speichern und aktivieren.
+5. **Automatik einschalten** wählen. Die App reagiert nur auf das passende Vordergrundspiel.
 
-1. Dieses Repository herunterladen oder klonen und vollstaendig entpacken.
-2. `Installieren.cmd` ausfuehren. Es installiert die Python-Abhaengigkeiten und startet
-   die automatisierten Tests. Es aktiviert keinen Autostart und keine Beleuchtung.
-3. OpenRGB oeffnen, gewuenschte Ausgangsbeleuchtung als **Static** oder **Direct**
-   einstellen und unter **SDK Server** den Server auf Port **6742** starten.
-4. `Starten.cmd` ausfuehren. Die Automatik und beide Spielprofile sind anfangs aus.
-5. Unter **Geraete & Zonen** ein Geraet waehlen und LED-Indizes einzeln testen.
-   Jeder Test dauert etwa zwei Sekunden und stellt anschliessend den Ausgangszustand wieder her.
-6. Zonen mit selbst beobachteten Indizes anlegen, beispielsweise linker und rechter
-   Stick-Ring. Die App nimmt keine physische Zuordnung voraus.
-7. Unter **Spielprofile** Anzeigen zuordnen, die Programmdatei pruefen, das Profil
-   aktivieren und speichern. Dann oben **Automatik einschalten** waehlen.
+Automatik, Spielprofile und Windows-Autostart sind beim ersten Start ausgeschaltet.
+Die Anzahl der SDK-LEDs sagt nichts Verlässliches über ihre physische Position aus.
+Zonen mit wenigen LEDs erlauben entsprechend nur eine grobe Richtungsanzeige.
 
-OpenRGB meldet SDK-LEDs, keine garantierte physische Geometrie. Eine Zone mit zwei
-steuerbaren LEDs erlaubt entsprechend nur eine sehr grobe Richtungsanzeige.
+## Funktionen
 
-## Enthaltene Funktionen
+| Bereich | Enthalten |
+| --- | --- |
+| Geräte | Mehrere OpenRGB-Geräte, einzelne LED-Tests, frei benannte LED-Zonen |
+| Profile | Vordergrundspiel erkennen, Helligkeit und Anzeige je Zone festlegen |
+| Project Zomboid | Gesundheit, Ausdauer und vorbereitete Geräuschdaten-Schnittstelle |
+| Hue | Hintergrundfarbe des Spielfensters erkennen und Farbwechsel glätten |
+| Windows | Infobereich, optionaler Benutzer-Autostart, optionaler OpenRGB-Mitstart |
+| Wiederherstellung | Ausgangszustand sichern, bei Pause/Profilwechsel/Ende zurückschreiben |
 
-- Mehrere OpenRGB-Geraete und frei benannte, nicht ueberlappende LED-Zonen.
-- Test einzelner LEDs, Winkelkorrektur und umgekehrte Reihenfolge fuer Richtungsanzeigen.
-- Profile anhand des Vordergrundprozesses, wahlweise exakter Programmdateiname oder voller Pfad.
-- Zomboid: Gesundheit, Ausdauer, Geraeuschrichtung oder Kombination, pro lokalem Spieler.
-- Hue: dominante gesaettigte Hintergrundfarbe aus dem Spielfenster mit geglaetteten Uebergaengen.
-- Feste Profilfarben, Helligkeit und Geraeuschfilter.
-- Minimieren in den Windows-Infobereich; ausdrueckliches Beenden mit Wiederherstellung.
-- Optionaler Benutzer-Autostart und optionaler Start der gewaehlten OpenRGB.exe.
-- Gespeicherter Ausgangszustand, separater Engine-Prozess, Heartbeat und Wiederherstellungsversuch
-  nach ausbleibender Antwort. Offene Sicherungen bleiben fuer den naechsten Start erhalten.
-- Diagnoseberichte und begrenzte lokale Logs. Keine Bildschirmbilder werden gespeichert.
+### Project Zomboid
 
-## Zomboid einrichten
+Unter **Einstellungen** den Lua-Ordner prüfen, normalerweise `%USERPROFILE%\Zomboid\Lua`.
+Mit **Zomboid-Mod installieren** wird die mitgelieferte Mod in den zugehörigen
+`Zomboid\mods`-Ordner kopiert. Eine vorhandene Version derselben Mod wird aktualisiert.
+In Zomboid anschließend **Zomboid Aura (Alpha)** aktivieren und die Partie neu laden.
 
-Unter **Einstellungen** den Lua-Cache pruefen, standardmaessig
-`%USERPROFILE%\Zomboid\Lua`. **Zomboid-Mod installieren** kopiert ausschliesslich
-den mitgelieferten Ordner `mods/ZomboidAura` in den passenden `Zomboid/mods`-Ordner.
-Eine bestehende Fassung dieser Mod wird aktualisiert. In Zomboid danach
-**Zomboid Aura (Alpha)** aktivieren und die Partie neu laden.
+Gesundheit und Ausdauer stammen aus der lokalen Spieltelemetrie. LED-Zuordnungen
+werden in AllyLight eingerichtet. Fehlen länger als drei Sekunden frische Daten,
+endet die Ausgabe der betroffenen Anzeigen.
 
-Die Windows-App verwendet die Telemetrie der Mod; LED-Zuordnungen aus einem alten
-Mod-Menue werden nicht als Windows-Profile uebernommen. Gesundheit und Ausdauer
-benoetigen keine weiteren Mods. Beim Ausbleiben frischer Frames fuer drei Sekunden
-endet die Ausgabe der davon abhaengigen Anzeigen.
+Die direkte Anbindung an **Visual Sounds ist noch nicht enthalten**. Die konkrete
+Mod-Version muss dafür geprüft werden. Die vorhandene API heißt
+`ZomboidAura.pushSound(x, y, z, strength, category, playerIndex)`.
 
-Die mitgelieferte Mod hat einen optionalen Weltgeraeusch-Fallback und die API
-`ZomboidAura.pushSound(x,y,z,strength,category,playerIndex)`. Der Fallback basiert auf
-KI-Weltgeraeuschen und ist kein exakter Hoertest. Er ist anfangs aus und laesst sich
-im bisherigen F10-/Welt-Kontextmenue der Mod einschalten. Die direkte Anbindung an
-Visual Sounds ist noch nicht implementiert; dafuer muss die konkrete Mod-Version
-geprueft werden. Kategorien Schuss/Alarm setzen einen passenden Adapter voraus.
+Ein optionaler Weltgeräusch-Fallback lässt sich im bisherigen F10-/Kontextmenü der Mod
+aktivieren. Er basiert auf KI-Geräuschereignissen und bildet das tatsächliche Hören
+nur ungefähr ab. B41-/B42-Verzeichnislayouts liegen bei; Live-Kompatibilität und
+Mehrspielerbetrieb müssen im konkreten Build geprüft werden.
 
-Die B41-/B42-Modlayouts liegen bei, Live-Kompatibilitaet ist je Build zu pruefen.
-Mehrspieler-Telemetrie ist nur lokal und nicht gesondert validiert.
+### Hue
 
-## Hue einrichten
+Das mitgelieferte Profil sucht nach `Hue.exe`. Eine abweichende Programmdatei lässt
+sich auswählen oder mit **Vordergrundspiel in 5 Sekunden uebernehmen** erfassen.
+Danach das Profil speichern und einer Zone **Bildschirmfarbe** zuordnen.
 
-Das vorgegebene Profil sucht nach `Hue.exe`. Weicht die Programmdatei ab, laesst sie
-sich auswaehlen oder ueber **Vordergrundspiel in 5 Sekunden uebernehmen** ermitteln.
-Danach das Profil speichern. Den Ringen die Anzeige **Bildschirmfarbe** zuweisen.
+AllyLight wertet die dominante gesättigte Farbe im Spielfenster aus. Schwarze Geometrie
+und weiße UI-Flächen werden ausgefiltert. Bei einem Fokuswechsel wird die Probe
+verworfen. HDR, Overlays und exklusives Vollbild können das Ergebnis beeinflussen;
+zuerst im Fenstermodus testen.
 
-Die Erfassung liest nur bei aktivem Hue-Profil das Client-Rechteck des Vordergrundfensters.
-Der Vordergrund wird vor und nach der Erfassung verglichen; bei einem Wechsel wird die
-Probe verworfen. Bildschirmdaten bleiben im Arbeitsspeicher. Schwarze Geometrie und
-weisse UI-Flaechen werden aus der Farbsuche ausgeschlossen. Bei unklarer Farbe wird nach
-kurzer Uebergangszeit zur Ausgangsbeleuchtung gewechselt. HDR, exklusives Vollbild und
-Overlays koennen die Erfassung beeinflussen; zuerst im Fenstermodus testen.
+## Wiederherstellung und Daten
 
-## Autostart und OpenRGB
+Vor dem ersten Zugriff speichert die App Modus, Parameter und Farben unter
+`%LOCALAPPDATA%\AllyLight\snapshots\pending.json`. Sie schreibt diesen Zustand bei
+Pause, Profilwechsel oder Beenden ausdrücklich über OpenRGB zurück.
 
-Autostart ist standardmaessig aus. In **Einstellungen** laesst sich die Verknuepfung
-`AllyLight.lnk` im Autostartordner des aktuellen Windows-Nutzers anlegen oder entfernen.
-Dafuer werden normalerweise keine Administratorrechte benoetigt. Der Programmordner
-muss danach an seinem Platz bleiben. Beim Umzug den Autostart aus- und erneut einschalten.
+- Unterstützte Ausgangsmodi: **Static** und **Direct**. Dynamische Effekte und ein vollständig schwarzer Ausgangszustand werden vorerst abgelehnt.
+- OpenRGB bleibt die Hardwareanbindung. Eine Rückgabe an Armoury Crate wird damit nicht zugesichert.
+- Schlägt die Wiederherstellung fehl, bleibt die Sicherung erhalten. Beim nächsten Verbinden wird sie zuerst erneut versucht.
+- Nach ausbleibender Antwort der Engine versucht ein separater Prozess die Wiederherstellung.
+- Bei Stromverlust, nicht erreichbarer Hardware oder beendetem OpenRGB ist keine sofortige Rücksetzung garantiert.
 
-Die optionale OpenRGB-Startfunktion verwendet die selbst ausgewaehlte EXE mit
-`--server --startminimized`. Ist der lokale SDK-Port bereits erreichbar, wird keine
-zweite Instanz angefordert. Fuer den Test keine konkurrierenden RGB-Effektprogramme laufen lassen.
-Die App richtet weder Dienste noch eine Firewall-Freigabe ein und verbindet nur zu 127.0.0.1.
+Konfiguration, Sicherungen und begrenzte Logs bleiben im lokalen Datenordner.
+Die App benötigt kein Cloudkonto und lädt keine Telemetrie hoch. Bildschirmproben
+bleiben im normalen Betrieb im Arbeitsspeicher. Der Build-Selbsttest erzeugt ein
+Bild seines eigenen Demo-Fensters zur Prüfung des Programmpakets.
 
-## Wiederherstellung und Fehler
+## Autostart
 
-Vor dem ersten Farbzugriff wird der Modus mit seinen Parametern und LED-Farben in
-`%LOCALAPPDATA%\AllyLight\snapshots\pending.json` gesichert. Andere LED-Bereiche des
-Geraetes bleiben im gespeicherten Ausgangszustand. Bei Profilwechsel, Pause oder Beenden
-schreibt die App den statischen Zustand ausdruecklich ueber OpenRGB zurueck.
+Unter **Einstellungen** kann AllyLight eine Verknüpfung im Autostartordner des aktuellen
+Windows-Nutzers anlegen oder entfernen. Administratorrechte sind normalerweise nicht nötig.
+Den Programmordner danach nicht verschieben; nach einem Umzug den Autostart neu einrichten.
 
-Eine bestaetigte Server-Rueckmeldung ist keine physische Messung. Ein schwarzer
-Ausgangszustand und dynamische Ausgangseffekte werden in dieser Version abgelehnt.
-OpenRGB bleibt die aktive Hardwareanbindung; eine Rueckgabe an Armoury Crate ist
-hiermit nicht zugesichert.
+Optional lässt sich eine selbst ausgewählte `OpenRGB.exe` mitstarten. Die App nutzt
+`--server --startminimized` und startet keine zweite Instanz, wenn der lokale SDK-Port
+bereits erreichbar ist. Für den Test keine konkurrierenden RGB-Effektprogramme betreiben.
 
-Bei verlorenem SDK-Zugriff bleibt die offene Sicherung erhalten. Beim naechsten Verbinden
-wird sie zuerst wiederhergestellt. Nach laengerem Haengen der Engine versucht die UI
-in einem neuen Prozess die Wiederherstellung. Bei Stromverlust, ausgefallener Hardware,
-beendeter OpenRGB-Anwendung oder einem gleichzeitig beendeten gesamten Programm ist
-keine sofortige Ruecksetzung garantiert. OpenRGB dann manuell pruefen.
+## Aus Quellcode starten
 
-## Dateien und Entwicklung
-
-- `allylight/`: GUI, Profil-/Datenlogik, Windows-Funktionen und OpenRGB-Anbindung.
-- `mods/`: mitgelieferte Zomboid-Mod.
-- `tests/`: Funktionstests mit simulierten Geraeten, keine automatischen Hardware-Schreibtests.
-- `docs/VALIDATION.md`: Nachweise und offene Abnahme.
-- `docs/SECURITY.md`: Sicherheitsgrenzen und Datenhaltung.
+Voraussetzungen: Windows x64, Python 3.12 mit Tkinter und OpenRGB.
 
 ```powershell
+py -3 -m pip install -r requirements.txt
 py -3 app.py
-py -3 app.py --demo --data-dir .\demo-data
-py -3 -m unittest discover -s tests -v
 ```
 
-Der Demo-Modus greift nicht auf RGB-Hardware zu. Auf Hosts ohne Display werden die
-nativen Formulartests uebersprungen und gesondert ausgewiesen. Windows-CI fuehrt diese
-Tests mit einer verfuegbaren Desktop-Sitzung aus. Linux ist eine Entwicklungsumgebung,
-kein unterstuetztes Ziel fuer Vordergrunderkennung oder Autostart.
+Alternativ `Installieren.cmd` und danach `Starten.cmd` verwenden. Bei
+`No module named 'pystray'` wurden die Abhängigkeiten nicht vollständig in derselben
+Python-Umgebung installiert; der obige Installationsbefehl installiert sie gemeinsam.
 
-Unter `%LOCALAPPDATA%\AllyLight` liegen Konfiguration, offene Sicherungen, begrenzte
-Logs und selbst exportierte Berichte. Kein Upload oder Cloudkonto ist erforderlich.
-Persoenliche Profile und Testdaten gehoeren nicht ins Repository.
+```powershell
+# Funktionstests
+py -3 -m unittest discover -s tests -v
 
-## Lizenz und Abhaengigkeiten
+# Oberfläche ohne RGB-Hardware ausprobieren
+py -3 app.py --demo --data-dir .\demo-data
 
-Eigener Code: MIT. OpenRGB, Project Zomboid und deren Assets werden nicht mitgeliefert.
-`openrgb-python` ist eine externe GPL-3.0-lizenzierte Abhaengigkeit; weitere Hinweise
-stehen in `THIRD_PARTY_NOTICES.md`. Fuer eine spaetere gebuendelte EXE ist die Lizenzlage
-des gesamten Pakets vor Auslieferung zu pruefen. Der Quellcode bleibt MIT. Das kombinierte EXE-Paket wird unter GPL-3.0 mit den
-benoetigten Lizenztexten und Quellen bereitgestellt; pystray behaelt seine LGPL-Lizenz.
+# Windows-EXE auf Windows bauen
+py -3 -m pip install -r requirements.txt -r requirements-build.txt
+py -3 tools\build_windows.py
+```
+
+Der EXE-Build prüft die tatsächliche Anwendung mit bereinigtem Suchpfad: Imports,
+Mod-Dateien, GUI, native Infobereich-API und den gebündelten Hintergrundprozess.
+Der Selbsttest greift nicht auf RGB-Hardware zu. Das fertige Paket liegt unter `dist\package`.
+
+## Projektstruktur und Status
+
+- `allylight/`: Oberfläche, Profile, Datenquellen, OpenRGB und Windows-Funktionen.
+- `mods/`: mitgelieferte Zomboid-Mod.
+- `tests/`: automatisierte Funktionstests mit simulierten Geräten.
+- `tools/build_windows.py`: Windows-Build und Paketprüfung.
+- [Testnachweise und offene Abnahme](docs/VALIDATION.md)
+- [Sicherheitsgrenzen](docs/SECURITY.md)
+- [Abhängigkeiten und Lizenzhinweise](THIRD_PARTY_NOTICES.md)
+
+Der zugrunde liegende OpenRGB-Farbtest und die statische Wiederherstellung wurden
+auf einem Ally bestätigt. Das ersetzt keine vollständige Prüfung der neuen Anwendung.
+Offen sind insbesondere die Live-Spieltests, die Geräuschintegration und die praktische
+Tray-/Autostartabnahme. Linux dient nur als Entwicklungs- und Testumgebung.
+
+## Lizenz
+
+Eigener Quellcode: **MIT**. Das kombinierte EXE-Paket wird unter **GPL-3.0** bereitgestellt;
+pystray behält seine **LGPL-3.0**-Lizenz. Das Paket enthält Anwendungscode, die tatsächlich
+verwendeten Python-Quellen der GPL-/LGPL-Abhängigkeiten, Lizenztexte, Build-Informationen
+und Prüfsummen. OpenRGB und Project Zomboid werden nicht mitgeliefert.

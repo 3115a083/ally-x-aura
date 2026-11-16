@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+import zipfile
 import unittest
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
@@ -37,6 +38,26 @@ class BundleTests(unittest.TestCase):
         self.assertEqual(clean['PATH'],str(Path('system').resolve()))
         self.assertEqual(clean['KEEP'],'yes')
         self.assertEqual(env['PATH'].count(root),2)
+
+    def test_dependency_source_export_uses_actual_python_wheels(self):
+        from tools.build_windows import collect_dependency_sources
+        with tempfile.TemporaryDirectory() as tmp:
+            def download(command,check):
+                self.assertIn('--only-binary=:all:',command)
+                self.assertNotIn('--no-binary=:all:',command)
+                for name in ['openrgb_python-0.3.8-py3-none-any.whl','pystray-0.19.5-py2.py3-none-any.whl']:
+                    with zipfile.ZipFile(Path(tmp)/name,'w') as z:z.writestr('package/__init__.py','# exact Python source')
+            with patch('tools.build_windows.subprocess.run',side_effect=download):collect_dependency_sources(tmp)
+            self.assertTrue((Path(tmp)/'README.txt').is_file())
+
+    def test_binary_dependency_cannot_be_mislabelled_source(self):
+        from tools.build_windows import collect_dependency_sources
+        with tempfile.TemporaryDirectory() as tmp:
+            for name in ['a.whl','b.whl']:
+                with zipfile.ZipFile(Path(tmp)/name,'w') as z:
+                    z.writestr('package/__init__.py','# source');z.writestr('package/native.pyd','binary')
+            with patch('tools.build_windows.subprocess.run'):
+                with self.assertRaises(RuntimeError):collect_dependency_sources(tmp)
 
     def test_source_mod_resources_exist(self):
         self.assertTrue((resource_root()/'mods/ZomboidAura/mod.info').exists())

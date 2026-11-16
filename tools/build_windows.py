@@ -19,6 +19,30 @@ def bundle_data_args(root):
             '--add-data='+str(root/'THIRD_PARTY_NOTICES.md')+';licenses']
 
 
+def collect_dependency_sources(destination):
+    destination=Path(destination);destination.mkdir(parents=True,exist_ok=True)
+    # These releases ship pure-Python wheels, including the actual .py sources.
+    # In particular 0.3.8 has no sdist; do not request a nonexistent source release.
+    subprocess.run([sys.executable,'-m','pip','download','--no-deps','--only-binary=:all:',
+                    '--dest',str(destination),'openrgb-python==0.3.8','pystray==0.19.5'],check=True)
+    wheels=list(destination.glob('*.whl'))
+    if len(wheels)!=2:raise RuntimeError('Expected both exact Python dependency archives')
+    for wheel in wheels:
+        with zipfile.ZipFile(wheel) as archive:
+            names=archive.namelist()
+            if not any(name.endswith('.py') for name in names):raise RuntimeError('Dependency source files missing')
+            if any(name.lower().endswith(('.pyd','.dll','.so','.pyc')) for name in names):
+                raise RuntimeError('Expected uncompiled Python sources, found binary dependency')
+    (destination/'README.txt').write_text(
+        'Unveraenderte pure-Python-Wheels der tatsaechlich eingebundenen Versionen.\n'
+        'Sie sind ZIP-Archive und enthalten die .py-Quellen und Paket-Lizenztexte.\n'
+        'Fuer openrgb-python 0.3.8 wurde keine separate Quelldistribution veroeffentlicht.\n'
+        'Die hier enthaltenen .py-Dateien wurden von PyInstaller in die EXE aufgenommen.\n'
+        'Zur lokalen Installation: python -m pip install PFAD_ZUR_DATEI.whl\n'
+        'Anschliessend lassen sich die .py-Dateien bearbeiten und die Anwendung mit\n'
+        'dem Buildskript aus application-source.zip erneut erstellen.\n',encoding='utf-8')
+
+
 def main():
     if sys.platform!='win32':raise SystemExit('Build on Windows x64; cross compilation is not supported.')
     os.chdir(ROOT)
@@ -56,8 +80,7 @@ def main():
         for name in tracked:
             if name and (ROOT/name).is_file():z.write(ROOT/name,'ally-x-aura/'+name)
     sources=package/'dependency-sources';sources.mkdir(exist_ok=True)
-    subprocess.run([sys.executable,'-m','pip','download','--no-deps','--no-binary=:all:',
-                    '--dest',str(sources),'openrgb-python==0.3.8','pystray==0.19.5'],check=True)
+    collect_dependency_sources(sources)
     python_license=Path(sys.base_prefix)/'LICENSE.txt'
     if python_license.exists():shutil.copy2(python_license,package/'LICENSES'/'CPython-LICENSE.txt')
     tcl_root=Path(sys.base_prefix)/'tcl'
